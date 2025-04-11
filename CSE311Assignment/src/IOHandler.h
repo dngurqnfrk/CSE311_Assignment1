@@ -6,7 +6,9 @@
 class IOHandler {
 private:
 public:
-	void get_input_txt(std::string addr);
-
+	template <typename T>
+	std::vector<T> get_input_txt(std::string addr);
+	
+	
 	IOHandler() = default;
 };
