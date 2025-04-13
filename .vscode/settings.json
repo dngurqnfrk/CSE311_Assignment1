@@ -45,6 +45,7 @@
         "streambuf": "cpp",
         "thread": "cpp",
         "typeinfo": "cpp",
-        "any": "cpp"
+        "any": "cpp",
+        "list": "cpp"
     }
 }

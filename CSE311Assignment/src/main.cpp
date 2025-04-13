@@ -9,11 +9,13 @@ std::vector<absSort*> sort_func_arr;
 int main(int argc, char* argv[]) {
     sort_func_arr = {new insertionSort, new testSort, new bubbleSort, new selectionSort,
                      new mergeSort, new heapSort, new quickSort,
-                     new librarySort, new test_timSort(10), new timSort
+                     new librarySort, new test_timSort(10), new timSort, new cocktailShakerSort,
+                     new combSort, new tournamentSort
                     };
     std::string test_name_arr[] = {"insertionSort", "testSort", "bubbleSort", "selectionSort",
                                    "mergeSort", "heapSort", "quickSort",
-                                   "librarySort", "test_timSort", "timSort"
+                                   "librarySort", "test_timSort", "timSort", "cocktailShakerSort",
+                                   "combSort", "tournamentSort"
                                   };
     std::cout << "argc : " << argc << std::endl;
     
@@ -30,7 +32,7 @@ int main(int argc, char* argv[]) {
     }
 
     test_node* tn_arr = new test_node[ioh.get_num_arrs()];
-    for(int j = 4; j < sort_func_arr.size(); j++) {
+    for(int j = 9; j < sort_func_arr.size(); j++) {
         std::cout  << "test[" << j << "] : " << test_name_arr[j] << std::endl; // DEBUG
         for(int i = 0; i < ioh.get_num_arrs(); i++) {
             tn_arr[i].arr = ioh.get_arr(i);

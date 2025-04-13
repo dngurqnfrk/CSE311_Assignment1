@@ -28,9 +28,10 @@ class heapSort : public absSort {
         ~heapSort() {}
     
         void sort(std::vector<int> &arr);
-        void build_max_heap(std::vector<int> &arr);
-        void max_heapify(std::vector<int> &arr, int index);
-        void heap_sort(std::vector<int> &arr);
+        void build_max_heap(std::vector<int> &arr, int start, int end);
+        void max_heapify(std::vector<int> &arr, int index, int start, int end);
+        void heap_sort(std::vector<int> &arr, int start, int end);
+        void heap_index_sort(std::vector<int> &arr, int start, int end);
 };
 
 class selectionSort : public absSort {
@@ -68,4 +69,5 @@ public:
     void sort(std::vector<int> &arr);
     void quick_sort(std::vector<int> &arr, int start, int end);
     int partition(std::vector<int> &arr, int start, int end);
+    int median_of_3(std::vector<int> arr, int start, int end);
 };

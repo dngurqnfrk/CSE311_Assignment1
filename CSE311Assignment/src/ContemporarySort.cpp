@@ -243,14 +243,36 @@ void timSort::sort(std::vector<int> &arr) {
         return;
 
     probe_run(arr);
-    run_height = 0;
-    stack_start = run_arr.size();
 
+    // <DEBUG>
+    /*
+    std::cout << "run arr : ";
+    for (int i = 0; i < run_arr.size(); i++) {
+        std::cout << run_arr[i] << " ";
+    }
+    std::cout << "\n";
+    */
+    // </DEBUG>
+    run_height = 0;
+    stack_start = run_arr.size() - 1;
     int start = 0;
     for(int i = 0; i < run_arr.size(); i++) {
-        run_height++;
+        if (stack_start > 0) {
+            stack_start--;
+            run_height++;
+        }
+        else
+            break;
         merge_collapse(arr);
-        // MODIFY : I should change stack type to myself. I can't use <stack>
+
+        // <DEBUG>
+        /*
+        std::cout << "run_arr (" << i << ", H = " << run_height << ") : ";
+        for (int i = stack_start; i <= stack_start + run_height; i++)
+            std::cout << run_arr[i] << " ";
+        std::cout << std::endl;
+        */
+        // </DEBUG>
     }
 
     if (run_height != 1)
@@ -262,58 +284,71 @@ void timSort::sort(std::vector<int> &arr) {
 void timSort::probe_run(std::vector<int> &arr) {
     int i = 1;
     int back_index = 0;
-    bool descending = false;
+    bool descending = arr[i - 1] > arr[i];
+    run_arr.emplace_back(0);
     while (i < arr.size()) {
         if (descending && arr[i - 1] < arr[i]) {
-            descending = false;
+            if (i + 1 < arr.size())
+                descending = arr[i] > arr[i + 1];
             reverse_arr(arr, back_index, i - 1);
+            run_arr.emplace_back(i);
             back_index = i;
-            run_arr.emplace_back(i - 1);
         } else if(!descending && arr[i - 1] > arr[i]) {
-            descending = true;
+            if (i + 1 < arr.size())
+                descending = arr[i] > arr[i + 1];
+            run_arr.emplace_back(i);
             back_index = i;
-            run_arr.emplace_back(i - 1);
         }
         i++;
     }
-    run_arr.emplace_back(arr.size() - 1);
 
-    // For stack manner
+    if (descending)
+        reverse_arr(arr, back_index, arr.size() - 1);
+
+    run_arr.emplace_back(arr.size());
     reverse_arr(run_arr, 0, run_arr.size() - 1);
-}
-
-void timSort::reverse_arr(std::vector<int> &arr, int start, int end) {
-    while(start < end) {
-        swap(arr, start, end);
-        start++;
-        end--;
-    }
 }
 
 void timSort::merge_collapse(std::vector<int> &arr) {
     while (run_height > 1) {
         int n = run_height - 2;
+        
+        int R_arr[5];
+        R_arr[1] = run_arr[stack_start] - run_arr[stack_start + 1];
+        R_arr[2] = run_arr[stack_start + 1] - run_arr[stack_start + 2];
+        if (n > 0)
+            R_arr[3] = run_arr[stack_start + 2] - run_arr[stack_start + 3];
+        if (n > 1)
+            R_arr[4] = run_arr[stack_start + 3] - run_arr[stack_start + 4];
 
-        if ((n > 0 && arr[stack_start - 3] <= 2 * arr[stack_start - 2] + 1)
-            || (n > 1 && arr[stack_start - 4] <= 2 * arr[stack_start - 3] + arr[stack_start - 1])) {
-            // (n > 0 && R3 <= R2) || (n > 1 && R4 <= R3 + R2)
-            if (arr[stack_start - 3] - arr[stack_start - 2] < arr[stack_start - 1] + 1) {
-                // R3 < R1
-                merge_sort.merge(arr, arr[stack_start - 1] + 1, arr[stack_start - 2],
-                                 arr[stack_start - 3]);
-                arr[stack_start - 3] += arr[stack_start - 2];
-                arr[stack_start - 2] = arr[stack_start];
-                stack_start--;
+        if ((n > 0 && R_arr[3] <= R_arr[1] + R_arr[2]) || 
+            (n > 1 && R_arr[4] <= R_arr[2] + R_arr[3])) {
+            // (n > 0 && R3 <= R2 + R1) || (n > 1 && R4 <= R3 + R2)
+            if (R_arr[3] < R_arr[1]) {
+                // std::cout << "R2 and R3 merged : " << run_arr[stack_start + 3] << " " << run_arr[stack_start + 2] - 1 << " "
+                //          << run_arr[stack_start + 1] - 1 << std::endl;
+                // R3 < R1 then merge R2 and R3
+                merge_sort.merge(arr, run_arr[stack_start + 3], run_arr[stack_start + 2] - 1,
+                                 run_arr[stack_start + 1] - 1);
+                for(int i = stack_start + 3; i <= stack_start + run_height; i++)
+                    swap(run_arr, i - 1, i);
             } else {
-                merge_sort.merge(arr, 0, arr[stack_start - 1], arr[stack_start - 2]);
-                arr[stack_start - 2] += arr[stack_start - 1];
-                stack_start--;
+                // else then merge R1 and R2
+                //std::cout << "R1 and R2 merged : " << run_arr[stack_start + 2] << " " << run_arr[stack_start + 1] - 1 << " "
+                //          << run_arr[stack_start] - 1 << std::endl;
+                merge_sort.merge(arr, run_arr[stack_start + 2], run_arr[stack_start + 1] - 1,
+                                 run_arr[stack_start] - 1);
+                for(int i = stack_start + 2; i <= stack_start + run_height; i++)
+                    swap(run_arr, i - 1, i);
             }
-        } else if (arr[stack_start - 2] < 2 * arr[stack_start - 1]) {
-            // R2 < R1
-            merge_sort.merge(arr, 0, arr[stack_start - 1], arr[stack_start - 2]);
-            arr[stack_start - 2] += arr[stack_start - 1];
-            stack_start--;
+        } else if (R_arr[2] < R_arr[1]) {
+            // R2 < R1 then merge R1 and R2
+            //std::cout << "R1 and R2 merged : " << run_arr[stack_start + 2] << " " << run_arr[stack_start + 1] - 1 << " "
+            //          << run_arr[stack_start] - 1 << std::endl;
+            merge_sort.merge(arr, run_arr[stack_start + 2], run_arr[stack_start + 1] - 1,
+                             run_arr[stack_start] - 1);
+            for(int i = stack_start + 2; i <= stack_start + run_height; i++)
+                swap(run_arr, i - 1, i);
         } else
             break;
 
@@ -323,9 +358,183 @@ void timSort::merge_collapse(std::vector<int> &arr) {
 
 void timSort::merge_force_collapse(std::vector<int> &arr) {
     while (run_height > 1) {
-        merge_sort.merge(arr, 0, arr[stack_start - 1], arr[stack_start - 2]);
-        arr[stack_start - 2] += arr[stack_start - 1];
-        stack_start--;
+        // std::cout << "R1 and R2 merged : " << run_arr[stack_start + 2] << " " << run_arr[stack_start + 1] - 1 << " "
+        //          << run_arr[stack_start] - 1 << std::endl;
+        merge_sort.merge(arr, run_arr[stack_start + 2], run_arr[stack_start + 1] - 1,
+            run_arr[stack_start] - 1);
+        for(int i = stack_start + 2; i <= stack_start + run_height; i++)
+            swap(run_arr, i - 1, i);
+
         run_height--;
+
+        // <DEBUG>
+        /*
+        std::cout << "run_arr (H = " << run_height << ") : ";
+        for (int i = stack_start; i <= stack_start + run_height; i++)
+            std::cout << run_arr[i] << " ";
+        std::cout << std::endl;
+        // </DEBUG>
+        */
     }
+}
+
+/* Cocktail Shacker Sort */
+void cocktailShakerSort::sort(std::vector<int> &arr) {
+    if (arr.size() < 2)
+        return;
+
+    int start = 0;
+    int end = arr.size() - 1;
+    bool descend = false;
+
+    while (start < end) {
+        if (!descend) {
+            int not_swapped_index = start;
+            for(int i = start + 1; i <= end; i++) {
+                if (arr[i - 1] > arr[i]) {
+                    swap(arr, i-1, i);
+                    not_swapped_index = i;
+                }
+            }
+            
+            descend = true;
+            end = not_swapped_index - 1;
+        } else {
+            int not_swapped_index = end - 1;
+            for (int i = end - 1; i >= start; i--) {
+                if (arr[i] > arr[i + 1]) {
+                    swap(arr, i, i+1);
+                    not_swapped_index = i;
+                }
+            }
+
+            descend = false;
+            start = not_swapped_index + 1;
+        }
+    }
+}
+
+/* combSort */
+void combSort::sort(std::vector<int> &arr) {
+    if (arr.size() < 2)
+        return;
+
+    int gap = arr.size() / 2;
+    while (gap > 1) {
+        gaps.emplace_back(gap);
+        gap *= 0.75;
+    }
+
+    for (int increment : gaps)
+        gapped_bubble_sort(arr, increment);
+
+    bubble_sort.sort(arr);
+
+    gaps.clear();
+}
+
+void combSort::gapped_bubble_sort(std::vector<int> &arr, int gap) {
+    for(int i = 0; i < arr.size() - gap; i++) {
+        if (arr[i] > arr[i + gap])
+            swap(arr, i, i + gap);
+    }
+}
+
+/* tournamentSort */
+void tournamentSort::sort(std::vector<int> &arr) {
+    if (arr.size() < 2)
+        return;
+
+    std::list<tournamentTree*> tree_list = listify(arr);
+
+    tournament(tree_list);
+    tournamentTree* root = tree_list.front();
+
+    int i = 0;
+    while(!root->children.empty()) {
+        arr[i] = root->key;
+        tree_list = root->children;
+        tournament(tree_list);
+        root = tree_list.front();
+        i++;
+    }
+    arr[i] = root->key;
+}
+
+std::list<tournamentTree*> tournamentSort::listify(std::vector<int> &arr) {
+    std::list<tournamentTree*> tree_list;
+    for(int i = 0; i < arr.size(); i++)
+        tree_list.emplace_back(new tournamentTree(arr[i]));
+
+    return tree_list;
+}
+
+tournamentTree* tournamentSort::tournament_play(tournamentTree* X, tournamentTree* Y) {
+    if (X->key <= Y->key) {
+        X->insert_child(Y);
+        return X;
+    } else {
+        Y->insert_child(X);
+        return Y;
+    }
+}
+
+void tournamentSort::tournament(std::list<tournamentTree*> &tree_list) {
+    while(tree_list.size() > 1) {
+        int list_iter = tree_list.size() / 2;
+
+        for(int i = 0; i < list_iter; i++) {
+            tournamentTree* X = tree_list.front();
+            tree_list.pop_front();
+            tournamentTree* Y = tree_list.front();
+            tree_list.pop_front();
+            tree_list.push_back(tournament_play(X, Y));
+        }
+    }
+
+    // tree_list.front()->print_tree(tree_list.front(), 0);
+}
+
+tournamentTree::tournamentTree(int key_) 
+: key(key_)
+{
+    parent = nullptr;
+}
+
+void tournamentTree::insert_child(tournamentTree* child) {
+    this->children.emplace_front(child);
+}
+
+void tournamentTree::print_tree(tournamentTree* root, int height) {
+    for (int i = 0; i < height - 1; i++)
+        std::cout << "    ";
+
+    if (height > 0)
+        std::cout << "+--";
+
+    std::cout << root->key << "\n";
+
+    for (auto child : root->children)
+        print_tree(child, height + 1);
+}
+
+/* introSort */
+void introSort::sort(std::vector<int> &arr) {
+    intro_sort(arr, 0, arr.size() - 1, floor(log2(arr.size())));
+
+    // basic_sort.sort(arr); // Why use InsertionSort?
+}
+
+void introSort::intro_sort(std::vector<int> &arr, int start, int end, int depth_limit) {
+    if (start >= end)
+        return;
+
+    if (depth_limit <= 0) {
+        heap_sort.heap_index_sort(arr, start, end);
+        return;
+    }
+
+    int mid = quick_sort.partition(arr, start, end);
+    intro_sort(arr, start, mid - 1, depth_limit - 1);
+    intro_sort(arr, mid + 1, end, depth_limit - 1);
 }

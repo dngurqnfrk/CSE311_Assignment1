@@ -19,17 +19,16 @@ void bubbleSort::sort(std::vector<int> &arr) {
     if (arr.size() < 2)
         return;
 
-    for (int i = arr.size(); i > 1; i--) {
-        bool swaped = false;
+    for (int i = arr.size(); i > 1;) {
+        int not_swaped_index = 0;
         for (int j = 1; j < i; j++) {
             if (arr[j - 1] > arr[j]) {
                 swap(arr, j - 1, j);
-                swaped = true;
+                not_swaped_index = j;
             }
         }
 
-        if(!swaped)
-            break;
+        i = not_swaped_index;
     }
 }
 
@@ -38,18 +37,17 @@ void heapSort::sort(std::vector<int> &arr) {
     if (heap_size < 2)
         return;
 
-    build_max_heap(arr);
-    heap_sort(arr);
+    heap_index_sort(arr, 0, arr.size() - 1);
 }
 
-void heapSort::build_max_heap(std::vector<int> &arr) {
-    for (int i = heap_size / 2; i >= 0; i--)
-        max_heapify(arr, i);
+void heapSort::build_max_heap(std::vector<int> &arr, int start, int end) {
+    for (int i = start + heap_size / 2; i >= start; i--)
+        max_heapify(arr, i, start, end);
 }
 
-void heapSort::max_heapify(std::vector<int> &arr, int index) {
-    int left = index * 2 + 1;
-    int right = index * 2 + 2;
+void heapSort::max_heapify(std::vector<int> &arr, int index, int start, int end) {
+    int left = (index - start) * 2 + start + 1;
+    int right = (index - start) * 2 + start + 2;
     
     int bigger_child = index;
     if (left < heap_size && arr[left] > arr[index])
@@ -60,16 +58,23 @@ void heapSort::max_heapify(std::vector<int> &arr, int index) {
 
     if (bigger_child != index) {
         swap(arr, index, bigger_child);
-        max_heapify(arr, bigger_child);
+        max_heapify(arr, bigger_child, start, end);
     }
 }
 
-void heapSort::heap_sort(std::vector<int> &arr) {
-    for(int i = arr.size() - 1; i > 0; i--) {
+void heapSort::heap_sort(std::vector<int> &arr, int start, int end) {
+    for(int i = end; i > start; i--) {
         heap_size--;
         swap(arr, 0, i);
-        max_heapify(arr, 0);
+        max_heapify(arr, 0, start, end);
     }
+}
+
+void heapSort::heap_index_sort(std::vector<int> &arr, int start, int end) {
+    heap_size = end - start + 1;
+
+    build_max_heap(arr, start, end);
+    heap_sort(arr, start, end);
 }
 
 void selectionSort::sort(std::vector<int> &arr) {
@@ -170,6 +175,7 @@ void mergeSort::merge(std::vector<int> &arr, int start, int mid, int end) {
 	}
 }
 
+/* quickSort */
 void quickSort::sort(std::vector<int> &arr) {
     if (arr.size() < 2)
         return;
@@ -187,7 +193,7 @@ void quickSort::quick_sort(std::vector<int> &arr, int start, int end) {
 }
 
 int quickSort::partition(std::vector<int> &arr, int start, int end) {
-    int pivot = (rand() % (end - start + 1)) + start;
+    int pivot = median_of_3(arr, start, end);
     swap(arr, pivot, end);
     pivot = arr[end];
     int partition_index = start - 1;
@@ -199,4 +205,25 @@ int quickSort::partition(std::vector<int> &arr, int start, int end) {
     }
     swap(arr, partition_index + 1, end);
     return partition_index + 1;
+}
+
+int quickSort::median_of_3(std::vector<int> arr, int start, int end) {
+    int n2 = arr[floor((start + end) / 2)];
+    if (arr[start > n2]) {
+        if (n2 > arr[end])
+            return floor((start + end) / 2);
+        else if(arr[start] > arr[end])
+            return end;
+        else
+            return start;
+    } else {
+        if (n2 < arr[end])
+            return floor((start + end) / 2);
+        else if(arr[start] < arr[end])
+            return end;
+        else
+            return start;
+    }
+
+    return -1;
 }

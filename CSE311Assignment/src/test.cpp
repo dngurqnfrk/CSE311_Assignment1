@@ -24,11 +24,11 @@ void test::start_test(test_node& tn, int index){
         if (!check_arr_sorted(test_arr)) {
             std::cout << "Array is not sorted :<\n";
         }
-        /*
+        
         std::cout << "Sorted Array is ";
         std::cout << test_arr[0] << ", " << test_arr[1] << ", " << test_arr[2] << ", ... , ";
         std::cout << test_arr[test_arr.size() - 2] << ", " << test_arr[test_arr.size() - 1] << std::endl;
-        
+        /*
         for(int i = 0; i < test_arr.size(); i++) {
             std::cout << test_arr[i] << " ";
         }
