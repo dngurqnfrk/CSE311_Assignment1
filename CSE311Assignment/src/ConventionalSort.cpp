@@ -47,13 +47,16 @@ void heapSort::build_max_heap(std::vector<int> &arr, int start, int end) {
 
 void heapSort::max_heapify(std::vector<int> &arr, int index, int start, int end) {
     int left = (index - start) * 2 + start + 1;
+    if (arr.size() <= left)
+        return;
+
     int right = (index - start) * 2 + start + 2;
     
     int bigger_child = index;
-    if (left < heap_size && arr[left] > arr[index])
+    if (left < heap_size + start && arr[left] > arr[index])
         bigger_child = left;
     
-    if (right < heap_size && arr[right] > arr[bigger_child])
+    if (right < heap_size + start && arr[right] > arr[bigger_child])
         bigger_child = right;
 
     if (bigger_child != index) {
@@ -65,8 +68,8 @@ void heapSort::max_heapify(std::vector<int> &arr, int index, int start, int end)
 void heapSort::heap_sort(std::vector<int> &arr, int start, int end) {
     for(int i = end; i > start; i--) {
         heap_size--;
-        swap(arr, 0, i);
-        max_heapify(arr, 0, start, end);
+        swap(arr, start, i);
+        max_heapify(arr, start, start, end);
     }
 }
 
@@ -207,19 +210,21 @@ int quickSort::partition(std::vector<int> &arr, int start, int end) {
     return partition_index + 1;
 }
 
-int quickSort::median_of_3(std::vector<int> arr, int start, int end) {
-    int n2 = arr[floor((start + end) / 2)];
-    if (arr[start > n2]) {
-        if (n2 > arr[end])
-            return floor((start + end) / 2);
-        else if(arr[start] > arr[end])
+int quickSort::median_of_3(std::vector<int> &arr, int start, int end) {
+    int n1 = arr[start];
+    int n2 = arr[(start + end + 1) / 2];
+    int n3 = arr[end];
+    if (n1 > n2) {
+        if (n2 > n3)
+            return (start + end + 1) / 2;
+        else if(n1 > n3)
             return end;
         else
             return start;
     } else {
-        if (n2 < arr[end])
-            return floor((start + end) / 2);
-        else if(arr[start] < arr[end])
+        if (n2 < n3)
+            return (start + end + 1) / 2;
+        else if(n1 < n3)
             return end;
         else
             return start;

@@ -69,5 +69,5 @@ public:
     void sort(std::vector<int> &arr);
     void quick_sort(std::vector<int> &arr, int start, int end);
     int partition(std::vector<int> &arr, int start, int end);
-    int median_of_3(std::vector<int> arr, int start, int end);
+    int median_of_3(std::vector<int> &arr, int start, int end);
 };
